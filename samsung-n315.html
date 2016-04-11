@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Merriweather:300,700' rel='stylesheet' type='text/css'>    
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">    
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="canonical" href="http://codegremlins.com/samsung-n315.html">
+    <title> My first netbook: Samsung N315</title>
+  </head>
+  <body>
+    <div class="main">
+    
+  <header>
+    <div class="layout">
+    <a href="/"><span>code</span>gremlins</a>
+    </div>
+  </header>
+  
+    
+    
+    <article class="content layout">
+      <header>
+        <div class="date">Wednesday, August 4th 2010</div>
+        <h1> My first netbook: Samsung N315</h1>
+      </header>
+      <div><p>I recently bought my first netbook a Samsung N315, mainly so that I can have a computer with me when I am on holidays for web browsing, staying in touch with my projects and maybe doing some coding when I am feeling bored in the evenings.</p>
+<p>The Samsung N315 has a nice look with rounded edges and a rubberized exterior. Specs are standard for current 10.1" netbooks:
+1Gb ram, 1.66GHz n450 Atom cpu, 250Gb disk, wifi, bluetooth, 1024x600 display resolution, 3 USB ports, VGA out port, card reader, ethernet port and 1.3Mp webcam. It has a 'pebble' style keyboard which is comfortable enough to type on.</p>
+<p>The machine came with Windows 7 Starter preinstalled, but this deficiency was easily remedied with the help of an Ubuntu 10.04 USB Startup Disk (actually more stick than "disk"). Installation was quick and without problems. Booting into Ubuntu takes roughly 25 seconds. I installed the <strong><a href="http://www.ubuntu.com/netbook">Ubuntu Netbook Edition</a></strong> but after trying the interface out I decided I prefer the normal Gnome interface (configurable via <code>System-&gt;Administration-&gt;Login Screen</code>). To save some vertical space the Gnome panels can be set to auto-hide.</p>
+<p>All the hardware seems to be working great under Ubuntu as far as I can tell. I had some slight concerns before, having read that certain previous models had some problems with wireless under Ubuntu (requiring the windows driver with <code>ndiswrapper</code> to work), but everything worked out of the box for me, probably thanks to better support for netbook hardware in more recent kernels. The battery seems to last around 3 hours with moderate use (browsing the web, installing some programs, occasionally compiling something).</p>
+<p>I only had two slight problems, one is that the special function keys are not working and the other is that I can't control the brightness of the display (not just with the function keys, but the gnome brightness applet does not seem to be working either). The display setting was too bright for my liking but although I haven't got the function keys working under Ubuntu yet, they do work before I boot into the OS (when I am in the BIOS settings for example). So I set the brightness to a level I find comfortable before I booted into Ubuntu. In order for the computer to preserve this setting between reboots, you must change <code>'Brightness Mode Control'</code> from <code>'Auto'</code> to <code>'User Control'</code> in the BIOS settings, otherwise the brightness level will be reset automatically on each reboot. But now that I lowered the brightness I had another problem, namely that the colors looked somewhat washed out. Usually on my desktop I would set a higher contrast level to compensate but I can't seem to find any way to control the contrast for the netbook display. Fortunately there is a utility called <code>xgamma</code> which does exactly what I need (gamma and contrast are not exactly the same thing, but it does what I needed), and by setting something like <code>xgamma -gamma 0.6</code> I got enough contrast and the colors now look crisp. To keep this setting between reboots you need to call xgamma each time you start X, one easy way to do this for people who don't want to tweak around too much is to simply add it to <code>Startup Applications</code>. </p>
+<p>After some more googling I came across these scripts for fixing the above mentioned key and brightness problems, although by this time I got lazy so I haven't tried them out yet:</p>
+<ul>
+<li><a href="http://www.voria.org/forum/viewtopic.php?f=3&amp;t=296">http://www.voria.org/forum/viewtopic.php?f=3&amp;t=296</a></li>
+<li><a href="https://launchpad.net/~voria/+archive/ppa?field.series_filter=lucid">https://launchpad.net/~voria/+archive/ppa?field.series_filter=lucid</a></li>
+</ul>
+<p>A lot has been said and written about the poor performance of netbooks, but I find that this netbook's performance is not bad for what I need it to do, and in any case it is not much worse than my 4 year old desktop (1Gb ram, Pentium D cpu), not to mention that it is much quieter (in fact it is completely silent, whereas my desktop on occasion sounds like something between a vacuum cleaner and a jetliner on takeoff). </p>
+<p>For comparison GIMP starts in 6 seconds compared to 3 seconds on my desktop, but youtube videos seem smoother on the Samsung N315 than on my desktop. Also as a test I compiled one application I am currently working on: The application consists of 143 Java files and on my desktop the average build time is 5 seconds while on the netbook the average build time is 8 seconds (times are calculated loosely and unscientifically, basically I ran ant several times and after some initial fluctuation build times settled on the values given above). This may not be stellar performance, especially compared to the latest high end machines, but for me it is perfectly adequate and I find that netbooks have plenty of power for programming.</p>
+</div>
+    </article>
+  
+  
+    
+  <footer>
+    <div class="layout">
+      <a href="http://codegremlins.com/privacy.html">Privacy</a>
+      <a href="http://codegremlins.com/about.html">About Me</a>
+      <div>
+      Copyright &copy; 2009-2016 Manuel Tomis
+      </div>    
+    </div>
+  </footer>
+  
+    </div>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-8321340-2', 'auto');
+      ga('send', 'pageview');
+
+    </script>    
+  </body>
+</html>
+  

@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Merriweather:300,700' rel='stylesheet' type='text/css'>    
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">    
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="canonical" href="http://codegremlins.com/graceful-restart-node.html">
+    <title> Graceful restart without downtime with node.js</title>
+  </head>
+  <body>
+    <div class="main">
+    
+  <header>
+    <div class="layout">
+    <a href="/"><span>code</span>gremlins</a>
+    </div>
+  </header>
+  
+    
+    
+    <article class="content layout">
+      <header>
+        <div class="date">Tuesday, July 5th 2011</div>
+        <h1> Graceful restart without downtime with node.js</h1>
+      </header>
+      <div><p>I recently started playing with node.js and one thing I like is that it enables (or at least makes easier) many interesting possibilities with regard to deployment and update methods (for example compared to Java/Jetty which I mostly use now).</p>
+<p>One scenario I am interested in is restarting a node app without the users noticing any down time. Of course there is lots of information online about doing this by load balancing between several node processes.</p>
+<p>But for our own reasons lets say we want to do this without load balancing. Assuming any session data is stored out of process (perhaps in Redis), the idea is to structure our node.js application like this:</p>
+<ul>
+<li>Perform any slow initialization (perhaps loading and compiling templates)</li>
+<li>Send TERM signal to old node process</li>
+<li>Start http server</li>
+<li>listen for TERM signal and stop server from accepting further connections.</li>
+</ul>
+<p>This is so that while we are initializing, the original node process is still running and serving requests. On receiving SIGTERM the old process stops accepting new connections, but still completes serving any current requests before quiting. In the mean time the new node process is up and handling any new requests.</p>
+<p>This is straightforward except perhaps step two. How do we know which process to send TERM signal to?
+We could save the PID in a file and read if from there but it turns out there is a more fun way.</p>
+<p>By using the <code>fuser</code> linux utility we can find out which process is listening on a specific port and send it a signal as well.
+For example:</p>
+<pre><code class="lang-bash hljs">fuser -n tcp 8000 -k -TERM
+</code></pre>
+<p>will find the process listening on port 8000 and send it the TERM signal. So using this, each time we start our node app we can send a TERM signal to the old version of the app which is listening for http connections and ask it to retire.</p>
+<p>Here is some code:</p>
+<pre><code class="lang-javascript hljs"><span class="hljs-keyword">var</span> exec = <span class="hljs-built_in">require</span>(<span class="hljs-string">'child_process'</span>).exec;
+
+<span class="hljs-keyword">var</span> server = <span class="hljs-literal">null</span>;
+<span class="hljs-keyword">var</span> signalReceived = <span class="hljs-literal">false</span>;
+
+process.on(<span class="hljs-string">'SIGTERM'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">if</span> (server != <span class="hljs-literal">null</span>) {
+    server.close();
+  }
+  signalReceived = <span class="hljs-literal">true</span>;
+});
+
+exports.listen = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">_server, port, timeout</span>) </span>{
+  port    = port || <span class="hljs-number">8080</span>;
+  timeout = timeout || <span class="hljs-number">5</span>;
+  server  = _server;
+
+  exec(<span class="hljs-string">'fuser -n tcp '</span> + port + <span class="hljs-string">' -k -TERM'</span>, 
+    <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
+      <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">attemptSocket</span>(<span class="hljs-params">noretry</span>) </span>{
+        <span class="hljs-keyword">if</span> (signalReceived) {
+          <span class="hljs-keyword">return</span>;
+        }
+
+        <span class="hljs-keyword">try</span> {
+          server.listen(port);
+        } <span class="hljs-keyword">catch</span> (e) {
+          <span class="hljs-built_in">console</span>.log(e);
+          <span class="hljs-keyword">if</span> (e.code == <span class="hljs-string">'EADDRINUSE'</span> &amp;&amp; !noretry) {
+            setTimeout(attemptSocket, timeout);
+          }
+        }
+      }
+
+      attemptSocket(error !== <span class="hljs-literal">null</span>);
+    });
+}
+</code></pre>
+<p>And here is how we would use it:</p>
+<pre><code class="lang-javascript hljs"><span class="hljs-keyword">var</span> http = <span class="hljs-built_in">require</span>(<span class="hljs-string">"http"</span>);
+<span class="hljs-keyword">var</span> graceful = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./graceful'</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onRequest</span>(<span class="hljs-params">request, response</span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Request received: "</span> + request.path);
+  response.writeHead(<span class="hljs-number">200</span>, {<span class="hljs-string">"Content-Type"</span>: <span class="hljs-string">"text/html"</span>});
+  response.write(<span class="hljs-string">"Hello World"</span>);
+  response.end();
+}
+
+
+<span class="hljs-keyword">var</span> server = http.createServer(onRequest);
+graceful.listen(server, <span class="hljs-number">8000</span>);
+</code></pre>
+<p>One small problem with the above is with keep-alive connections. When a browser has a keep-alive connection open this will keep the old node process running (and possibly serving new requests from that connection) until the keep alive connection times out after a couple of minutes of inactivity.</p>
+</div>
+    </article>
+  
+  
+    
+  <footer>
+    <div class="layout">
+      <a href="http://codegremlins.com/privacy.html">Privacy</a>
+      <a href="http://codegremlins.com/about.html">About Me</a>
+      <div>
+      Copyright &copy; 2009-2016 Manuel Tomis
+      </div>    
+    </div>
+  </footer>
+  
+    </div>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-8321340-2', 'auto');
+      ga('send', 'pageview');
+
+    </script>    
+  </body>
+</html>
+  

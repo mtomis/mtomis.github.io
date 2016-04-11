@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Merriweather:300,700' rel='stylesheet' type='text/css'>    
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">    
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="canonical" href="http://codegremlins.com/going-to-town-annnotations.html">
+    <title> Going to town with annotations</title>
+  </head>
+  <body>
+    <div class="main">
+    
+  <header>
+    <div class="layout">
+    <a href="/"><span>code</span>gremlins</a>
+    </div>
+  </header>
+  
+    
+    
+    <article class="content layout">
+      <header>
+        <div class="date">Tuesday, August 17th 2010</div>
+        <h1> Going to town with annotations</h1>
+      </header>
+      <div><p>Annotations are a very useful feature of the Java language but sometimes an overdose of a good thing can be bad for you. Let me explain:</p>
+<p>In our first example from Spring MVC we are using an annotation to map a method to a url. Without annotations this mapping information would likely have to go into an external file, perhaps an xml file, so annotations are very helpful in this case, because the code is much more straightforward when we have the two together. This is a good use of annotations:</p>
+<pre><code class="lang-java hljs"><span class="hljs-meta">@RequestMapping</span>(<span class="hljs-string">"/hello/kitty"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">somePage</span><span class="hljs-params">(....)</span> </span>{
+}
+</code></pre>
+<p>Going further and after a little googling I found <a href="http://wheelersoftware.com/articles/spring-bean-validation-framework.html">this example</a> of using annotations for validation, again in Spring:</p>
+<pre><code class="lang-java hljs">  <span class="hljs-meta">@NotBlank</span>  
+  <span class="hljs-meta">@Length</span>(max = <span class="hljs-number">80</span>)  
+  <span class="hljs-keyword">private</span> String name;  
+
+  <span class="hljs-meta">@NotBlank</span>  
+  <span class="hljs-meta">@Email</span>  
+  <span class="hljs-meta">@Length</span>(max = <span class="hljs-number">80</span>)  
+  <span class="hljs-keyword">private</span> String email;  
+
+  <span class="hljs-meta">@NotBlank</span>  
+  <span class="hljs-meta">@Length</span>(max = <span class="hljs-number">4000</span>)  
+  <span class="hljs-keyword">private</span> String text;
+</code></pre>
+<p>Of course this can be a good thing, for example maybe you have a framework that uses the annotations to generate client-side Javascript validation code in addition to validating on the server side. But if that is not the case then we are starting to cross a line here, the line of using annotations to code things that could have been done perfectly well in plain Java code, and yet we are using annotations just because we can.</p>
+<p>For comparison here is an imaginary piece of code of how this could look like in a universe where we are coding with pure servlets and without frameworks:</p>
+<pre><code class="lang-java hljs">Validator v = <span class="hljs-keyword">new</span> Validator(httpRequest);
+v.item(<span class="hljs-string">"name"</span>).notBlank().maxLength(<span class="hljs-number">80</span>);
+v.item(<span class="hljs-string">"email"</span>).notBlank().maxLength(<span class="hljs-number">80</span>).email();
+v.item(<span class="hljs-string">"text"</span>).notBlank().maxLength(<span class="hljs-number">4000</span>);
+
+<span class="hljs-keyword">if</span> (v.error()) {
+  <span class="hljs-comment">// failure</span>
+} <span class="hljs-keyword">else</span> {
+  <span class="hljs-comment">// success</span>
+}
+</code></pre>
+<p>This looks like about the same amount of code. So purely in terms of writing more high level code we haven't gained anything by using annotations in this case.</p>
+<p>Googling some more I found this example:</p>
+<pre><code class="lang-java hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">MovieRecommender</span><span class="hljs-params">(CustomerPreferenceDao customerPreferenceDao,
+                        @Value(<span class="hljs-string">"#{systemProperties['user.country']}"</span>} String defaultLocale)</span> </span>{
+    <span class="hljs-keyword">this</span>.customerPreferenceDao = customerPreferenceDao;
+    <span class="hljs-keyword">this</span>.defaultLocale = defaultLocale;
+}
+</code></pre>
+<p>Now we are passing actual code snippets as annotations. Perhaps there are legitimate uses of this but are we going a little overboard here? I mean what are we gaining for doing this instead of plainly writing:</p>
+<pre><code class="lang-java hljs"><span class="hljs-keyword">this</span>.defaultLocale = System.getProperty(<span class="hljs-string">"user.country"</span>)
+</code></pre>
+<p>So what is the moral of this story? People get excited about new language features and try to do imaginative things with them. But when designing a library/api/framework it is a good idea to ask yourself first: "Could this be easily done in plain Java code?" before designing a complex meta-programing system to do the same thing with annotations. </p>
+<p>What are we losing when we are using annotations instead of plain Java code? Besides making our program dependent on more complicated frameworks, annotations (being metadata and not code) are less powerful than actual code when used for programming scenarios. So to compensate, frameworks must define more annotations in order to cover all combinations and different use cases but also sometimes you are stuck when you need to do something the framework designer has not predicted. </p>
+</div>
+    </article>
+  
+  
+    
+  <footer>
+    <div class="layout">
+      <a href="http://codegremlins.com/privacy.html">Privacy</a>
+      <a href="http://codegremlins.com/about.html">About Me</a>
+      <div>
+      Copyright &copy; 2009-2016 Manuel Tomis
+      </div>    
+    </div>
+  </footer>
+  
+    </div>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-8321340-2', 'auto');
+      ga('send', 'pageview');
+
+    </script>    
+  </body>
+</html>
+  

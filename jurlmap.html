@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Merriweather:300,700' rel='stylesheet' type='text/css'>    
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">    
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="canonical" href="http://codegremlins.com/jurlmap.html">
+    <title> jurlmap - RESTful URLs for your Java app</title>
+  </head>
+  <body>
+    <div class="main">
+    
+  <header>
+    <div class="layout">
+    <a href="/"><span>code</span>gremlins</a>
+    </div>
+  </header>
+  
+    
+    
+    <article class="content layout">
+      <header>
+        <div class="date">Thursday, September 3rd 2009</div>
+        <h1> jurlmap - RESTful URLs for your Java app</h1>
+      </header>
+      <div><p>If you are in the business of writing Web 2.0-ish applications then clean urls are an essential part of the package.</p>
+<p>Bad =&gt; <code>/member.jsp?username=tastychicken&amp;view=blog&amp;sort=hot</code><br>Good =&gt; <code>/member/tastychicken/blog/hot</code>  </p>
+<p>Here are some reasons why this matters:</p>
+<ul>
+<li><p>Your app looks more professional and by paying attention to details such as your urls you will give people the impression that your app is rock solid, well designed and in general that you know what you are doing. This assumes that the rest of your site looks as good as your urls.</p>
+</li>
+<li><p>It is easier for people to remember your urls and navigate to them manually. According to some research that I once stumbled upon on google but now totally forgot where and what it was about,  people spend as much as <strong>24%</strong> of their time on a search results page <strong>looking at the returned urls</strong>, and are more likely to click on clean and informative urls than messed up ones.</p>
+</li>
+<li><p>It likely matters for SEO.</p>
+</li>
+</ul>
+<p>So if you are writing a site in java how do you go about implementing such urls for your app? There are several ways:</p>
+<ul>
+<li><p>You can do it the old fashion manual way, like it was done for centuries.<br>You can create a filter in which you manually parse urls and forward to servlets or jsp pages for the action.
+This becomes repetitive and unmaintainable very quickly.</p>
+</li>
+<li><p>You can use apache's mod_rewrite.<br>And yet there are times when you would like to stay completely in java rather than having a part of your application (the url structure) stored in a completely separate and unrelated place. Plus maybe you don't want or can't run apache on your live setup for some reason.</p>
+</li>
+<li><p>You can use an existing library such as <a href="http://tuckey.org/urlrewrite/">UrlRewriteFilter</a> which implements in Java the functionality of apache mod_rewrite.  This is a very good and powerful tool, and yet, I still prefer something that is more directly tuned to the single goal or creating clean urls, which would avoid multiple lines of xml configuration per url mapping (for some sage advice regarding xml usage go <a href="http://www.bileblog.org/2007/03/xml-wiring-is-for-girls/">here</a>), and would give me even more help with handling parameters.</p>
+</li>
+</ul>
+<p>To address this problem i wrote a small library called  <strong><a href="http://jurlmap.codegremlins.com">jurlmap</a></strong>. Some features of <a href="http://jurlmap.codegremlins.com">jurlmap</a> are:</p>
+<ul>
+<li>Simple pattern language for brevity and convenience</li>
+<li>Direct binding of parameters to bean properties or method parameters</li>
+<li>Configuration in plain java and annotations. No need for external configuration artifacts</li>
+</ul>
+<p>Here are some url pattern examples:</p>
+<pre><code class="lang-java hljs"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">configure</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// In this pattern $ means a string, which when matched </span>
+    <span class="hljs-comment">// is bound to parameter `Username` and control forwarded to profile.jsp</span>
+    <span class="hljs-comment">// Parameter will be accessible via request.getParameter()</span>
+    forward(<span class="hljs-string">"/profile.jsp"</span>, <span class="hljs-string">"/profile/$Username"</span>);
+
+    <span class="hljs-comment">// Here % means integer pattern and * means until end of the pattern.</span>
+    <span class="hljs-comment">// Binds integers to parameter ArticleId and forwards to article.jsp</span>
+    forward(<span class="hljs-string">"/article.jsp"</span>, <span class="hljs-string">"/article/%ArticleId/*"</span>);
+
+    <span class="hljs-comment">// When matched will send a redirect back to browser and parameters</span>
+    <span class="hljs-comment">// are appended to query string so in this case the target will</span>
+    <span class="hljs-comment">// be `/servlets/profileservlet?Username=...`</span>
+    redirect(<span class="hljs-string">"/servlets/profileservlet"</span>, <span class="hljs-string">"/member/$Username"</span>);
+
+
+    <span class="hljs-comment">// On match creates an instance of LoginPage and calls it's service method</span>
+    <span class="hljs-comment">// LoginPage class implements com.pagegoblin.jurlmap.Page.</span>
+    <span class="hljs-comment">// If it is annotated with a @Deploy(url) annotation</span>
+    <span class="hljs-comment">// the we don't need to pass a url to the deploy method.</span>
+    <span class="hljs-comment">// In this case parameters are bound to bean properties or fields </span>
+    <span class="hljs-comment">// of the newly created LoginPage instance.</span>
+    deploy(LoginPage.class);
+}
+</code></pre>
+<p>Detailed info and more advanced use cases can be found in the <a href="http://jurlmap.codegremlins.com/manual.html">manual</a>.</p>
+<ul>
+<li><a href="http://jurlmap.codegremlins.com/"><b>jurlmap home</b></a>  </li>
+</ul>
+<p>Enjoy.</p>
+</div>
+    </article>
+  
+  
+    
+  <footer>
+    <div class="layout">
+      <a href="http://codegremlins.com/privacy.html">Privacy</a>
+      <a href="http://codegremlins.com/about.html">About Me</a>
+      <div>
+      Copyright &copy; 2009-2016 Manuel Tomis
+      </div>    
+    </div>
+  </footer>
+  
+    </div>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-8321340-2', 'auto');
+      ga('send', 'pageview');
+
+    </script>    
+  </body>
+</html>
+  
